@@ -12,6 +12,9 @@ from PyQt5.QtWidgets import (
     QCheckBox, QDockWidget
 )
 
+# Importar componente reutilizable
+from contadorWidget import WordCounterWidget
+
 
 class MiniWord(QMainWindow):
     def __init__(self):
@@ -23,7 +26,6 @@ class MiniWord(QMainWindow):
         
         self.text_area = QTextEdit()
         self.setCentralWidget(self.text_area)
-        self.text_area.textChanged.connect(self.update_word_count)
 
        
         self.highlight_selections = []
@@ -125,12 +127,30 @@ class MiniWord(QMainWindow):
             toolbar.addAction(action)
 
     def create_statusbar(self):
-        self.word_label = QLabel("Palabras: 0")
+        # Crear el widget contador con señales
+        self.word_counter = WordCounterWidget(
+            wpm=200,
+            mostrarPalabras=True,
+            mostrarCaracteres=True,
+            mostrarTiempoLectura=True
+        )
+        
+        # Conectar el cambio de texto al método update_from_text del widget
+        self.text_area.textChanged.connect(
+            lambda: self.word_counter.update_from_text(self.text_area.toPlainText())
+        )
+        
+        # (Opcional) Conectar la señal para logging o procesamiento adicional
+        # self.word_counter.conteoActualizado.connect(self.on_conteo_actualizado)
 
         barra_estado = self.statusBar()
         barra_estado.addPermanentWidget(QLabel(platform.system()))
-        barra_estado.addPermanentWidget(self.word_label)
+        barra_estado.addPermanentWidget(self.word_counter)
         barra_estado.showMessage("Listo.", 3000)
+    
+    # (Opcional) Método para recibir la señal del widget
+    # def on_conteo_actualizado(self, palabras, caracteres):
+    #     print(f"Señal recibida: {palabras} palabras, {caracteres} caracteres")
 
     
     def nuevo(self):
@@ -338,10 +358,7 @@ class MiniWord(QMainWindow):
         if ok:
             self.text_area.setFont(fuente)
 
-    def update_word_count(self):
-        texto = self.text_area.toPlainText().strip()
-        palabras = len(texto.split()) if texto else 0
-        self.word_label.setText(f"Palabras: {palabras}")
+    # Método update_word_count() eliminado - ahora usa WordCounterWidget
 
 
 if __name__ == "__main__":
