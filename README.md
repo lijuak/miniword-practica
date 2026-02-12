@@ -175,17 +175,154 @@ def update_word_count(self):
 
 ---
 
+## 🎤 Reconocimiento de Voz (Speech Recognition)
+
+### Componente AudioWidget
+
+`AudioWidget` es un componente reutilizable que permite **dictar texto por voz** usando el micrófono.
+
+**Archivo:** `audioWidget.py`
+
+#### Señal Personalizada
+
+```python
+class AudioWidget(QWidget):
+    # Señal que emite el texto reconocido
+    textoReconocido = pyqtSignal(str)
+```
+
+#### Características
+
+- **Reconocimiento en tiempo real**: Captura audio del micrófono y lo convierte a texto
+- **Hilo separado**: No bloquea la interfaz durante la grabación
+- **Manejo de errores robusto**: Detecta problemas de micrófono, conexión, y audio ininteligible
+- **Multiidioma**: Soporta español, inglés, francés, etc.
+- **Feedback visual**: El botón cambia de color según el estado (🎤 → 🔴 Grabando → ⏳ Procesando)
+
+#### Cómo Usar
+
+1. **Hacer clic en el botón "🎤 Dictar"** en la barra de herramientas
+2. **Hablar claramente** cerca del micrófono
+3. **Esperar** a que procese (el botón mostrará "⏳ Procesando...")
+4. **El texto aparecerá** automáticamente en el editor
+
+#### Tecnologías Utilizadas
+
+- **PyAudio**: Captura de audio desde el micrófono
+- **SpeechRecognition**: Biblioteca para reconocimiento de voz
+- **Google Speech Recognition API**: Motor gratuito de reconocimiento (requiere internet)
+
+#### Configuración de Idioma
+
+Por defecto el widget está configurado para español (`es-ES`). Puedes cambiarlo:
+
+```python
+# En DI_U02_A04_03.py
+self.audio_widget = AudioWidget(language='en-US')  # Inglés
+self.audio_widget = AudioWidget(language='fr-FR')  # Francés
+```
+
+**Idiomas soportados:**
+- `es-ES` - Español (España)
+- `es-MX` - Español (México)
+- `en-US` - Inglés (Estados Unidos)
+- `en-GB` - Inglés (Reino Unido)
+- `fr-FR` - Francés
+- `de-DE` - Alemán
+- Y muchos más...
+
+### Integración en MiniWord
+
+```python
+def create_toolbar(self):
+    # ... otras acciones ...
+    
+    # Añadir widget de audio
+    self.audio_widget = AudioWidget(language='es-ES')
+    self.audio_widget.textoReconocido.connect(self.insertar_texto_dictado)
+    toolbar.addWidget(self.audio_widget)
+
+def insertar_texto_dictado(self, texto):
+    """Inserta el texto dictado en la posición del cursor"""
+    cursor = self.text_area.textCursor()
+    cursor.insertText(texto + " ")
+```
+
+### Manejo de Errores
+
+El widget maneja automáticamente varios tipos de errores:
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| "No se detectó audio" | Silencio o micrófono desconectado | Verificar micrófono y hablar más cerca |
+| "No se pudo entender el audio" | Audio poco claro o ruido de fondo | Hablar más claro en ambiente silencioso |
+| "Error de conexión" | Sin conexión a internet | Verificar conexión a internet |
+| "No se detectó micrófono" | Micrófono no disponible | Conectar micrófono y reiniciar app |
+
+### Flujo de Eventos
+
+```
+Usuario hace clic en 🎤 Dictar
+        ↓
+AudioWidget inicia hilo de grabación
+        ↓
+Botón cambia a 🔴 Grabando...
+        ↓
+Captura audio del micrófono (máx 10 segundos)
+        ↓
+Botón cambia a ⏳ Procesando...
+        ↓
+Google Speech API convierte audio a texto
+        ↓
+AudioWidget emite señal textoReconocido(texto)
+        ↓
+MiniWord recibe texto y lo inserta en el editor
+        ↓
+Botón vuelve a 🎤 Dictar
+```
+
+### Requisitos
+
+> [!IMPORTANT]
+> - **Micrófono funcional** conectado al ordenador
+> - **Conexión a internet** (para Google Speech Recognition API)
+> - **Ambiente silencioso** para mejor reconocimiento
+> - **PyAudio instalado** (ver sección de instalación)
+
+---
+
 ## 🛠️ Instalación y Ejecución
 
 ### Requisitos
 ```bash
+# Instalar todas las dependencias
+pip install -r requirements.txt
+
+# O instalar manualmente
 pip install PyQt5
+pip install SpeechRecognition
+pip install pyaudio
 ```
+
+> [!WARNING]
+> **Instalación de PyAudio en Windows:**
+> Si `pip install pyaudio` falla, usa:
+> ```bash
+> pip install pipwin
+> pipwin install pyaudio
+> ```
 
 ### Ejecutar la aplicación
 ```bash
 python DI_U02_A04_03.py
 ```
+
+### Probar Speech Recognition
+
+1. Ejecutar la aplicación
+2. Hacer clic en el botón "🎤 Dictar" en la barra de herramientas
+3. Hablar claramente: "Hola, esto es una prueba de dictado"
+4. El texto aparecerá automáticamente en el editor
 
 ---
 

@@ -12,8 +12,9 @@ from PyQt5.QtWidgets import (
     QCheckBox, QDockWidget
 )
 
-# Importar componente reutilizable
+# Importar componentes reutilizables
 from contadorWidget import WordCounterWidget
+from audioWidget import AudioWidget
 
 
 class MiniWord(QMainWindow):
@@ -125,6 +126,14 @@ class MiniWord(QMainWindow):
 
         for action in self.edit_actions:
             toolbar.addAction(action)
+        
+        # Añadir separador
+        toolbar.addSeparator()
+        
+        # Añadir widget de audio (reconocimiento de voz)
+        self.audio_widget = AudioWidget(language='es-ES')
+        self.audio_widget.textoReconocido.connect(self.insertar_texto_dictado)
+        toolbar.addWidget(self.audio_widget)
 
     def create_statusbar(self):
         # Crear el widget contador con señales
@@ -357,6 +366,17 @@ class MiniWord(QMainWindow):
         fuente, ok = QFontDialog.getFont(self)
         if ok:
             self.text_area.setFont(fuente)
+    
+    def insertar_texto_dictado(self, texto):
+        """
+        Inserta el texto dictado por voz en la posición del cursor.
+        
+        Args:
+            texto (str): Texto reconocido del audio
+        """
+        cursor = self.text_area.textCursor()
+        cursor.insertText(texto + " ")
+        self.statusBar().showMessage(f"Dictado: {texto[:50]}{'...' if len(texto) > 50 else ''}", 3000)
 
     # Método update_word_count() eliminado - ahora usa WordCounterWidget
 
