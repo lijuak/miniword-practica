@@ -22,6 +22,12 @@ class AudioRecognitionThread(QThread):
         recognizer = sr.Recognizer()
         
         try:
+            # Verificar que hay micrófonos disponibles
+            mic_list = sr.Microphone.list_microphone_names()
+            if not mic_list:
+                self.errorOcurrido.emit("No se detectó ningún micrófono. Conecta un micrófono e intenta de nuevo.")
+                return
+            
             # Usar el micrófono como fuente de audio
             with sr.Microphone() as source:
                 # Ajustar el ruido ambiental
@@ -40,8 +46,8 @@ class AudioRecognitionThread(QThread):
             self.errorOcurrido.emit("No se pudo entender el audio. Intenta hablar más claro.")
         except sr.RequestError as e:
             self.errorOcurrido.emit(f"Error de conexión: {str(e)}")
-        except OSError:
-            self.errorOcurrido.emit("No se detectó micrófono. Conecta un micrófono e intenta de nuevo.")
+        except (OSError, AttributeError) as e:
+            self.errorOcurrido.emit("No se pudo acceder al micrófono. Verifica que esté conectado y que la aplicación tenga permisos.")
         except Exception as e:
             self.errorOcurrido.emit(f"Error inesperado: {str(e)}")
 
