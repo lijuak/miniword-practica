@@ -1,4 +1,4 @@
-# MiniWord - Editor de Texto con PyQt5
+# MiniWord - Editor de Texto con PyQt6
 
 Editor de texto simple pero potente desarrollado con PyQt5, con funcionalidades avanzadas de edición, búsqueda y componentes reutilizables.
 
